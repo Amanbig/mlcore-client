@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import builtins
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
@@ -10,10 +13,10 @@ class DatasetManager:
     Manages dataset operations including uploading, listing, cleaning, and transforming.
     """
 
-    def __init__(self, client: "MLCore"):
+    def __init__(self, client: MLCore):
         self.client = client
 
-    def list(self) -> list[dict[str, Any]]:
+    def list(self) -> builtins.list[dict[str, Any]]:
         """List all datasets available to the user."""
         return self.client.request("GET", "datasets")
 
@@ -78,7 +81,7 @@ class DatasetManager:
         self,
         dataset_id: str | UUID,
         strategy: str,
-        columns: list[str] | None = None,
+        columns: builtins.list[str] | None = None,
     ) -> dict[str, Any]:
         """
         Apply cleaning strategy (e.g., 'drop_nulls', 'fill_mean') to the dataset.
@@ -88,7 +91,7 @@ class DatasetManager:
         return self.client.request("POST", f"dataset/{dataset_id}/clean", json=payload)
 
     def transform(
-        self, dataset_id: str | UUID, strategy: str, columns: list[str]
+        self, dataset_id: str | UUID, strategy: str, columns: builtins.list[str]
     ) -> dict[str, Any]:
         """
         Apply transformation strategy (e.g., 'standard_scaler', 'label_encoder') to columns.
@@ -97,7 +100,7 @@ class DatasetManager:
         payload = {"strategy": strategy, "columns": columns}
         return self.client.request("POST", f"dataset/{dataset_id}/transform", json=payload)
 
-    def get_versions(self, dataset_id: str | UUID) -> list[dict[str, Any]]:
+    def get_versions(self, dataset_id: str | UUID) -> builtins.list[dict[str, Any]]:
         """Get the full version history (lineage) for a dataset."""
         return self.client.request("GET", f"dataset/{dataset_id}/versions")
 
@@ -136,10 +139,10 @@ class AsyncDatasetManager:
     Asynchronous version of DatasetManager.
     """
 
-    def __init__(self, client: "MLCoreAsync"):
+    def __init__(self, client: MLCoreAsync):
         self.client = client
 
-    async def list(self) -> list[dict[str, Any]]:
+    async def list(self) -> builtins.list[dict[str, Any]]:
         """List all datasets available to the user."""
         return await self.client.request("GET", "datasets")
 
@@ -200,20 +203,20 @@ class AsyncDatasetManager:
         self,
         dataset_id: str | UUID,
         strategy: str,
-        columns: list[str] | None = None,
+        columns: builtins.list[str] | None = None,
     ) -> dict[str, Any]:
         """Apply cleaning strategy to the dataset."""
         payload = {"strategy": strategy, "columns": columns}
         return await self.client.request("POST", f"dataset/{dataset_id}/clean", json=payload)
 
     async def transform(
-        self, dataset_id: str | UUID, strategy: str, columns: list[str]
+        self, dataset_id: str | UUID, strategy: str, columns: builtins.list[str]
     ) -> dict[str, Any]:
         """Apply transformation strategy to columns."""
         payload = {"strategy": strategy, "columns": columns}
         return await self.client.request("POST", f"dataset/{dataset_id}/transform", json=payload)
 
-    async def get_versions(self, dataset_id: str | UUID) -> list[dict[str, Any]]:
+    async def get_versions(self, dataset_id: str | UUID) -> builtins.list[dict[str, Any]]:
         """Get the full version history for a dataset."""
         return await self.client.request("GET", f"dataset/{dataset_id}/versions")
 

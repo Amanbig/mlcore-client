@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import builtins
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
@@ -11,10 +14,10 @@ class ModelManager:
     uploading, and version control.
     """
 
-    def __init__(self, client: "MLCore"):
+    def __init__(self, client: MLCore):
         self.client = client
 
-    def list(self) -> list[dict[str, Any]]:
+    def list(self) -> builtins.list[dict[str, Any]]:
         """List all models available to the user."""
         return self.client.request("GET", "ml_models")
 
@@ -27,7 +30,7 @@ class ModelManager:
         dataset_id: str | UUID,
         algorithm: str,
         target_column: str,
-        features: list[str] | None = None,
+        features: builtins.list[str] | None = None,
         hyperparameters: dict[str, Any] | None = None,
         name: str | None = None,
         description: str | None = None,
@@ -89,7 +92,7 @@ class ModelManager:
         dataset_id: str | UUID,
         algorithm: str,
         target_column: str,
-        features: list[str] | None = None,
+        features: builtins.list[str] | None = None,
         hyperparameters: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Retrain an existing model with new parameters or data."""
@@ -106,7 +109,7 @@ class ModelManager:
         """Get the allowed hyperparameter schema for a specific algorithm."""
         return self.client.request("GET", f"ml_model/hyperparameters/{algorithm}")
 
-    def get_versions(self, model_id: str | UUID) -> list[dict[str, Any]]:
+    def get_versions(self, model_id: str | UUID) -> builtins.list[dict[str, Any]]:
         """Get the version history for a specific model lineage."""
         return self.client.request("GET", f"ml_model/{model_id}/versions")
 
@@ -139,10 +142,10 @@ class AsyncModelManager:
     Asynchronous version of ModelManager.
     """
 
-    def __init__(self, client: "MLCoreAsync"):
+    def __init__(self, client: MLCoreAsync):
         self.client = client
 
-    async def list(self) -> list[dict[str, Any]]:
+    async def list(self) -> builtins.list[dict[str, Any]]:
         """List all models available to the user."""
         return await self.client.request("GET", "ml_models")
 
@@ -155,7 +158,7 @@ class AsyncModelManager:
         dataset_id: str | UUID,
         algorithm: str,
         target_column: str,
-        features: list[str] | None = None,
+        features: builtins.list[str] | None = None,
         hyperparameters: dict[str, Any] | None = None,
         name: str | None = None,
         description: str | None = None,
@@ -210,7 +213,7 @@ class AsyncModelManager:
         dataset_id: str | UUID,
         algorithm: str,
         target_column: str,
-        features: list[str] | None = None,
+        features: builtins.list[str] | None = None,
         hyperparameters: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Retrain an existing model asynchronously."""
@@ -227,7 +230,7 @@ class AsyncModelManager:
         """Get hyperparameter schema asynchronously."""
         return await self.client.request("GET", f"ml_model/hyperparameters/{algorithm}")
 
-    async def get_versions(self, model_id: str | UUID) -> list[dict[str, Any]]:
+    async def get_versions(self, model_id: str | UUID) -> builtins.list[dict[str, Any]]:
         """Get version history asynchronously."""
         return await self.client.request("GET", f"ml_model/{model_id}/versions")
 
