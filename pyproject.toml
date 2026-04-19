@@ -1,6 +1,6 @@
 [project]
 name = "mlcore-client"
-version = "0.1.1"
+version = "0.1.2"
 description = "A Python client for MLCore, providing a database-like interface for managing datasets and machine learning models."
 readme = "README.md"
 requires-python = ">=3.10"
