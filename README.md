@@ -1,6 +1,10 @@
 # MLCore Python Client
 
-A Python client for [MLCore](https://github.com/aman-preeti/MLCore), providing a database-like interface for managing datasets and machine learning models.
+A powerful Python client for [MLCore](https://github.com/Amanbig/MLCore), providing a database-like interface for managing datasets and machine learning models. Built for data scientists and engineers who want to automate their machine learning workflows.
+
+## Links
+- **GitHub Repository**: [Amanbig/MLCore](https://github.com/Amanbig/MLCore)
+- **Docker Hub**: [procoder588/mlcore](https://hub.docker.com/r/procoder588/mlcore)
 
 ## Installation
 
@@ -8,108 +12,115 @@ A Python client for [MLCore](https://github.com/aman-preeti/MLCore), providing a
 pip install mlcore-client
 ```
 
-## Quick Start
+## Connection
 
-### Connecting to MLCore
-
-You can connect using a connection string (similar to database URLs) or by providing host and credentials explicitly.
+Connect to your MLCore instance using a connection string (URI) or explicit parameters.
 
 ```python
-from mlcore.client import MLCore
+from mlcore import MLCore
 
-# Using a connection string
+# Option 1: Connection string (Recommended)
+# Format: mlcore://user:password@host:port
 client = MLCore("mlcore://admin:password@localhost:8000")
 
-# Or using explicit parameters
+# Option 2: Explicit parameters
 client = MLCore(
-    host="localhost",
-    port=8000,
-    email="admin@example.com",
-    password="secure_password"
+    host="localhost", 
+    port=8000, 
+    email="admin@example.com", 
+    password="password"
 )
-
-# Check connection
-print(client.health_check())
 ```
 
-### Working with Datasets
-
-The client allows you to manage the entire dataset lifecycle, from raw file upload to cleaning and transformation.
+### Asynchronous Support
+For `asyncio` applications, use `MLCoreAsync`:
 
 ```python
-# 1. Upload a raw file (CSV/Excel)
-file_info = client.datasets.upload_file("data/iris.csv")
+from mlcore import MLCoreAsync
 
-# 2. Register it as a dataset
-dataset = client.datasets.create(
-    name="Iris Dataset",
-    description="Classic iris flowers dataset",
-    file_id=file_info["id"],
-    rows=150,
-    columns=5,
-    metadata={"source": "local"}
-)
-
-# 3. List all datasets
-all_datasets = client.datasets.list()
-
-# 4. Fetch data as a Pandas DataFrame
-df = client.datasets.get_data(dataset["id"], as_df=True)
-
-# 5. Clean dataset (e.g., drop nulls)
-cleaned_version = client.datasets.clean(dataset["id"], strategy="drop_nulls")
+client = MLCoreAsync("mlcore://admin:password@localhost:8000")
+await client.connect()
+# ... use await with all methods ...
+await client.close()
 ```
 
-### Managing Models
+---
 
-You can train models on the server or upload pre-trained ones.
+## API Documentation
 
+### 📊 Dataset Manager (`client.datasets`)
+
+Manage data lifecycle from raw files to cleaned versions.
+
+| Method | Description | Parameters |
+|:-------|:------------|:-----------|
+| `list()` | List all accessible datasets. | - |
+| `get(id)` | Get metadata for a dataset. | `id`: UUID or string |
+| `upload_file(path)` | Upload a raw CSV/Excel file. | `path`: Local file path |
+| `create(...)` | Register a file as a dataset. | `name`, `description`, `file_id`, `rows`, `columns`, `metadata` |
+| `get_data(id, ...)` | Fetch paginated rows. | `id`, `page=1`, `limit=50`, `as_df=False` |
+| `clean(id, ...)` | Apply cleaning logic. | `id`, `strategy` ('drop_nulls', 'fill_mean', etc.), `columns` |
+| `transform(id, ...)` | Apply transformations. | `id`, `strategy` ('standard_scaler', etc.), `columns` |
+| `get_versions(id)` | Get history/lineage. | `id` |
+| `delete(id)` | Permanently remove dataset. | `id` |
+
+### 🤖 Model Manager (`client.models`)
+
+Train, evaluate, and deploy machine learning models.
+
+| Method | Description | Parameters |
+|:-------|:------------|:-----------|
+| `list()` | List all trained models. | - |
+| `get(id)` | Get model specs & metrics. | `id`: UUID or string |
+| `train(...)` | Start a training job. | `dataset_id`, `algorithm`, `target_column`, `features`, `hyperparameters`, `name` |
+| `predict(id, inputs)` | Run real-time inference. | `id`, `inputs`: Dict[feature_name, value] |
+| `download(id, path)` | Download `.joblib` file. | `id`, `path`: Local destination path |
+| `retrain(id, ...)` | Run new training session. | `id`, `dataset_id`, `algorithm`, etc. |
+| `get_hyperparameters(algo)` | Get valid hyperparams. | `algo`: Algorithm name |
+| `get_versions(id)` | Get model history. | `id` |
+| `update_meta(id, ...)` | Rename/update description. | `id`, `name`, `description` |
+| `delete(id)` | Delete model artifacts. | `id` |
+
+### 📈 General Methods
+
+| Method | Description |
+|:-------|:------------|
+| `get_stats()` | Get platform-wide statistics (counts of models, datasets, files). |
+| `health_check()` | Check server connectivity and version. |
+
+---
+
+## Usage Examples
+
+### End-to-End Pipeline
 ```python
-# 1. Train a new model
+# 1. Prepare Data
+file_info = client.datasets.upload_file("raw_data.csv")
+ds = client.datasets.create(name="Training Set", file_id=file_info["id"], ...)
+cleaned_ds = client.datasets.clean(ds["id"], strategy="drop_nulls")
+
+# 2. Train Model
 model = client.models.train(
-    dataset_id=dataset["id"],
+    dataset_id=cleaned_ds["id"],
     algorithm="random_forest",
-    target_column="species",
-    features=["sepal_length", "sepal_width", "petal_length", "petal_width"],
-    hyperparameters={"n_estimators": 100},
-    name="Iris RF Classifier"
+    target_column="label",
+    hyperparameters={"n_estimators": 200}
 )
 
-# 2. Run inference (Predict)
-prediction = client.models.predict(
-    model_id=model["id"],
-    inputs={
-        "sepal_length": 5.1,
-        "sepal_width": 3.5,
-        "petal_length": 1.4,
-        "petal_width": 0.2
-    }
-)
-print(f"Predicted species: {prediction['predictions'][0]}")
+# 3. Monitor Specs
+print(f"Model trained with {model['accuracy']}% accuracy")
 
-# 3. Download the trained .joblib file
-client.models.download(model["id"], "trained_model.joblib")
+# 4. Predict
+result = client.models.predict(model["id"], inputs={"feature_1": 0.5, "feature_2": 1.2})
+print(f"Prediction: {result['predictions']}")
 ```
 
 ## Features
-
-- **Database-like Connection**: Simple URL-based connection management.
-- **Session Management**: Automatic token handling and re-authentication.
-- **Dataset Lineage**: Track versions of datasets as you clean and transform them.
-- **Model Versioning**: Keep track of model iterations and performance metrics.
-- **Pandas Integration**: Seamlessly convert dataset samples to DataFrames.
-
-## Development
-
-```bash
-# Clone the repository
-git clone https://github.com/Amanbig/mlcore-client.git
-cd mlcore-client
-
-# Install dependencies
-pip install -e .
-```
+- **Database-like Connection**: URI-based connection strings (`mlcore://`).
+- **Session Persistence**: Automatic token management and re-auth logic.
+- **Pandas Ready**: One-click conversion from server data to DataFrames.
+- **Async First**: First-class support for `httpx`-based asynchronous I/O.
+- **Developer Friendly**: Strictly typed and linted with **Ruff**.
 
 ## License
-
 MIT
