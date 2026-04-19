@@ -1,3 +1,3 @@
-from .client import MLCore
+from .client import MLCore, MLCoreAsync
 
-__all__ = ["MLCore"]
+__all__ = ["MLCore", "MLCoreAsync"]
